@@ -14,8 +14,8 @@
     <div id="conditionsContainer">
         <div class="condition-group">
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
-            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions()">
-                <option value="string">String</option>
+            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
+                <option value="string" selected>String</option>
                 <option value="number">Number</option>
                 <option value="boolean">Boolean</option>
                 <option value="choice">Choice</option>
@@ -25,9 +25,7 @@
             <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
 
             <label class="block text-gray-600 font-medium mb-1">Function:</label>
-            <select class="function w-full p-2 border rounded-md mb-4">
-                <!-- Dynamic options will be added here based on column type -->
-            </select>
+            <select class="function w-full p-2 border rounded-md mb-4"></select>
 
             <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
             <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
@@ -52,48 +50,52 @@
         Generate Trigger Condition
     </button>
 
-    <!-- Hide the Generated OData Condition section until a condition is generated -->
     <div id="generatedSection" class="mt-4 hidden">
         <h3 class="text-sm text-gray-600 font-medium">Generated OData Condition:</h3>
         <div id="output" class="mt-2 p-3 bg-gray-200 text-gray-700 rounded-md text-sm"></div>
+        <button onclick="copyToClipboard()"
+            class="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition mt-2">
+            Copy to Clipboard
+        </button>
+
     </div>
 </div>
 
 <div class="mt-8 text-center text-sm text-gray-600">
-    <p>Made by <a href="https://github.com/Jack-JB" target="_blank" class="text-blue-600 hover:underline">Jack</a></p>
+    <p>Made by <a href="https://github.com/Jack-JB" target="_blank" class="text-blue-600 hover:underline">Jack Burrows</a></p>
 </div>
 
 <script>
-    function updateFunctions() {
-        const columnType = document.querySelector('.columnType').value;
-        const functionSelect = document.querySelector('.function');
+    function updateFunctions(columnTypeSelect) {
+        const functionSelect = columnTypeSelect.closest('.condition-group').querySelector('.function');
         functionSelect.innerHTML = ''; // Clear existing options
 
+        const columnType = columnTypeSelect.value;
         const functions = {
             string: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
-            number: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
+            number: ['equals', 'notEquals', 'greater', 'less', 'greaterOrEquals', 'lessOrEquals'],
             boolean: ['equals', 'notEquals'],
             choice: ['equals', 'notEquals', 'empty', 'notEmpty']
         };
 
-        const options = functions[columnType] || [];
-        options.forEach(func => {
+        (functions[columnType] || []).forEach(func => {
             const option = document.createElement('option');
             option.value = func;
-            option.textContent = func.charAt(0).toUpperCase() + func.slice(1).replace(/([A-Z])/g, ' $1'); // Format function names
+            option.textContent = func.charAt(0).toUpperCase() + func.slice(1).replace(/([A-Z])/g, ' $1');
             functionSelect.appendChild(option);
         });
 
-        // Change column value input type based on column type
-        const columnValueInput = document.querySelector('.columnValue');
+        // Update column value input
+        const columnValueContainer = columnTypeSelect.closest('.condition-group').querySelector('.columnValue');
         if (columnType === 'boolean') {
-            columnValueInput.type = 'select-one';
-            columnValueInput.innerHTML = `
-                <option value="true">True</option>
-                <option value="false">False</option>
-            `;
+            columnValueContainer.outerHTML = `
+                <select class="columnValue w-full p-2 border rounded-md mb-4">
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>`;
         } else {
-            columnValueInput.type = 'text';
+            columnValueContainer.outerHTML = `
+                <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">`;
         }
     }
 
@@ -105,8 +107,8 @@
 
         conditionGroup.innerHTML = `
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
-            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions()">
-                <option value="string">String</option>
+            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
+                <option value="string" selected>String</option>
                 <option value="number">Number</option>
                 <option value="boolean">Boolean</option>
                 <option value="choice">Choice</option>
@@ -116,66 +118,67 @@
             <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
 
             <label class="block text-gray-600 font-medium mb-1">Function:</label>
-            <select class="function w-full p-2 border rounded-md mb-4">
-                <!-- Dynamic options will be added here based on column type -->
-            </select>
+            <select class="function w-full p-2 border rounded-md mb-4"></select>
 
             <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
             <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
         `;
 
         conditionsContainer.appendChild(conditionGroup);
+
+        const newColumnType = conditionGroup.querySelector('.columnType');
+        updateFunctions(newColumnType);
         document.getElementById("conditionLogicContainer").classList.remove("hidden");
     }
 
     function generateTrigger() {
-        const columnTypes = document.querySelectorAll('.columnType');
-        const columnNames = document.querySelectorAll('.columnName');
-        const functions = document.querySelectorAll('.function');
-        const columnValues = document.querySelectorAll('.columnValue');
-        const conditionLogic = document.getElementById('conditionLogic').value;
+    const columnTypes = document.querySelectorAll('.columnType');
+    const columnNames = document.querySelectorAll('.columnName');
+    const functions = document.querySelectorAll('.function');
+    const columnValues = document.querySelectorAll('.columnValue');
+    const conditionLogic = document.getElementById('conditionLogic').value;
 
-        const functionMap = {
-            equals: "equals",
-            notEquals: "not",
-            greater: "greater",
-            less: "less",
-            greaterOrEquals: "greaterOrEquals",
-            lessOrEquals: "lessOrEquals"
-        };
+    const functionMap = {
+        equals: "equals",
+        notEquals: "not",
+        greater: "greater",
+        less: "less",
+        greaterOrEquals: "greaterOrEquals",
+        lessOrEquals: "lessOrEquals"
+    };
 
-        let conditions = [];
+    let conditions = [];
 
-        for (let i = 0; i < columnNames.length; i++) {
-            const columnType = columnTypes[i].value;
-            const columnName = columnNames[i].value.trim();
-            const func = functions[i].value;
-            const columnValue = columnValues[i].value.trim();
+    for (let i = 0; i < columnNames.length; i++) {
+        const columnType = columnTypes[i].value;
+        const columnName = columnNames[i].value.trim();
+        const func = functions[i].value;
+        const columnValue = columnValues[i].value.trim();
 
-            if (!columnName || !columnValue) continue;
+        if (!columnName || !columnValue) continue;
 
-            let condition = "";
+        let condition = "";
 
-            if (columnType === "choice") {
-                condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
-            } else if (columnType === "string") {
-                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
-            } else if (columnType === "boolean" || columnType === "number") {
-                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], ${columnValue})`;
-            }
-
-            conditions.push(condition);
+        if (columnType === "choice") {
+            // Correctly access the Value property for choice columns
+            condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
+        } else if (columnType === "string") {
+            condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
+        } else {
+            condition = `${functionMap[func]}(triggerBody()?['${columnName}'], ${columnValue})`;
         }
 
-        // Now handle the logic correctly: avoid extra quotes and handle conditions
-        let triggerCondition = conditions.length > 1
-            ? `@${conditionLogic}(${conditions.join(", ")})`
-            : `@${conditions[0] || "No valid conditions entered."}`;
-
-        const generatedSection = document.getElementById('generatedSection');
-        generatedSection.classList.remove('hidden'); // Show the generated section
-        document.getElementById('output').innerText = `${triggerCondition}`;
+        conditions.push(condition);
     }
+
+    let triggerCondition = conditions.length > 1
+        ? `@${conditionLogic}(${conditions.join(", ")})`
+        : `@${conditions[0] || "No valid conditions entered."}`;
+
+    document.getElementById('generatedSection').classList.remove('hidden');
+    document.getElementById('output').innerText = triggerCondition;
+}
+
 </script>
 
 </body>
