@@ -48,7 +48,7 @@
 
     <button onclick="generateTrigger()"
         class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition">
-        Generate Trigger Condition
+        Generate Condition
     </button>
 
     <div id="generatedSection" class="mt-4 hidden">
@@ -67,48 +67,22 @@
 </div>
 
 <script>
-    function updateFunctions(columnTypeSelect) {
-        const functionSelect = columnTypeSelect.closest('.condition-group').querySelector('.function');
-        functionSelect.innerHTML = ''; // Clear existing options
-
-        const columnType = columnTypeSelect.value;
-        const functions = {
-            string: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
-            number: ['equals', 'notEquals', 'greater', 'less', 'greaterOrEquals', 'lessOrEquals'],
-            boolean: ['equals', 'notEquals'],
-            choice: ['equals', 'notEquals', 'empty', 'notEmpty']
-        };
-
-        if (columnType === 'default') return; // If the user hasn't selected a type, do nothing
-
-        (functions[columnType] || []).forEach(func => {
-            const option = document.createElement('option');
-            option.value = func;
-            option.textContent = func.charAt(0).toUpperCase() + func.slice(1).replace(/([A-Z])/g, ' $1');
-            functionSelect.appendChild(option);
-        });
-
-        // Update column value input
-        const columnValueContainer = columnTypeSelect.closest('.condition-group').querySelector('.columnValue');
-        if (columnType === 'boolean') {
-            columnValueContainer.outerHTML = `
-                <select class="columnValue w-full p-2 border rounded-md mb-4">
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                </select>`;
-        } else {
-            columnValueContainer.outerHTML = `
-                <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">`;
-        }
-    }
-
+    
     function addCondition() {
         const conditionsContainer = document.getElementById('conditionsContainer');
 
         const conditionGroup = document.createElement('div');
-        conditionGroup.classList.add("condition-group", "mt-4", "border-t", "pt-4");
+        conditionGroup.classList.add(
+            "relative", "bg-gray-100", "border", "border-gray-300", 
+            "rounded-lg", "p-4", "mb-4", "shadow-sm", "condition-group"
+        );
 
         conditionGroup.innerHTML = `
+            <button class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
+                onclick="removeCondition(this)">
+                ✕
+            </button>
+
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
             <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
                 <option value="default" selected>Choose a column type</option>
@@ -122,7 +96,9 @@
             <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
 
             <label class="block text-gray-600 font-medium mb-1">Function:</label>
-            <select class="function w-full p-2 border rounded-md mb-4"></select>
+            <select class="function w-full p-2 border rounded-md mb-4">
+                <option value="default">Choose a function</option>
+            </select>
 
             <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
             <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
@@ -130,9 +106,40 @@
 
         conditionsContainer.appendChild(conditionGroup);
 
-        const newColumnType = conditionGroup.querySelector('.columnType');
-        updateFunctions(newColumnType);
+        // Trigger updateFunctions when adding a new condition
+        updateFunctions(conditionGroup.querySelector('.columnType'));
+
         document.getElementById("conditionLogicContainer").classList.remove("hidden");
+    }
+
+    function removeCondition(button) {
+        button.parentElement.remove();
+    }
+
+    function updateFunctions(columnTypeSelect) {
+        const conditionGroup = columnTypeSelect.closest('.condition-group'); // Find parent group
+        const functionSelect = conditionGroup.querySelector('.function'); // Find function dropdown
+        functionSelect.innerHTML = ''; // Clear existing options
+
+        const columnType = columnTypeSelect.value;
+        const functions = {
+            string: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
+            number: ['equals', 'notEquals', 'greater', 'less', 'greaterOrEquals', 'lessOrEquals'],
+            boolean: ['equals', 'notEquals'],
+            choice: ['equals', 'notEquals', 'empty', 'notEmpty']
+        };
+
+        if (columnType === 'default') {
+            functionSelect.innerHTML = '<option value="default">Choose a function</option>';
+            return;
+        }
+
+        (functions[columnType] || []).forEach(func => {
+            const option = document.createElement('option');
+            option.value = func;
+            option.textContent = func.charAt(0).toUpperCase() + func.slice(1).replace(/([A-Z])/g, ' $1');
+            functionSelect.appendChild(option);
+        });
     }
 
     function copyToClipboard() {
