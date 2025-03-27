@@ -15,7 +15,8 @@
         <div class="condition-group">
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
             <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
-                <option value="string" selected>String</option>
+                <option value="default" selected>Choose a column type</option>
+                <option value="string">String</option>
                 <option value="number">Number</option>
                 <option value="boolean">Boolean</option>
                 <option value="choice">Choice</option>
@@ -78,6 +79,8 @@
             choice: ['equals', 'notEquals', 'empty', 'notEmpty']
         };
 
+        if (columnType === 'default') return; // If the user hasn't selected a type, do nothing
+
         (functions[columnType] || []).forEach(func => {
             const option = document.createElement('option');
             option.value = func;
@@ -108,7 +111,8 @@
         conditionGroup.innerHTML = `
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
             <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
-                <option value="string" selected>String</option>
+                <option value="default" selected>Choose a column type</option>
+                <option value="string">String</option>
                 <option value="number">Number</option>
                 <option value="boolean">Boolean</option>
                 <option value="choice">Choice</option>
@@ -131,54 +135,76 @@
         document.getElementById("conditionLogicContainer").classList.remove("hidden");
     }
 
+    function copyToClipboard() {
+      const outputText = document.getElementById('output').innerText;
+
+      // Create a temporary textarea element to copy the text
+      const textarea = document.createElement('textarea');
+      textarea.value = outputText;
+      document.body.appendChild(textarea);
+
+      // Select the text inside the textarea
+      textarea.select();
+      textarea.setSelectionRange(0, 99999); // For mobile devices
+
+      // Copy the text to clipboard
+      document.execCommand('copy');
+
+      // Remove the textarea element after copying
+      document.body.removeChild(textarea);
+
+      alert('OData condition copied to clipboard!');
+} 
+
+
+
     function generateTrigger() {
-    const columnTypes = document.querySelectorAll('.columnType');
-    const columnNames = document.querySelectorAll('.columnName');
-    const functions = document.querySelectorAll('.function');
-    const columnValues = document.querySelectorAll('.columnValue');
-    const conditionLogic = document.getElementById('conditionLogic').value;
+        const columnTypes = document.querySelectorAll('.columnType');
+        const columnNames = document.querySelectorAll('.columnName');
+        const functions = document.querySelectorAll('.function');
+        const columnValues = document.querySelectorAll('.columnValue');
+        const conditionLogic = document.getElementById('conditionLogic').value;
 
-    const functionMap = {
-        equals: "equals",
-        notEquals: "not",
-        greater: "greater",
-        less: "less",
-        greaterOrEquals: "greaterOrEquals",
-        lessOrEquals: "lessOrEquals"
-    };
+        const functionMap = {
+            equals: "equals",
+            notEquals: "not",
+            greater: "greater",
+            less: "less",
+            greaterOrEquals: "greaterOrEquals",
+            lessOrEquals: "lessOrEquals"
+        };
 
-    let conditions = [];
+        let conditions = [];
 
-    for (let i = 0; i < columnNames.length; i++) {
-        const columnType = columnTypes[i].value;
-        const columnName = columnNames[i].value.trim();
-        const func = functions[i].value;
-        const columnValue = columnValues[i].value.trim();
+        for (let i = 0; i < columnNames.length; i++) {
+            const columnType = columnTypes[i].value;
+            const columnName = columnNames[i].value.trim();
+            const func = functions[i].value;
+            const columnValue = columnValues[i].value.trim();
 
-        if (!columnName || !columnValue) continue;
+            if (!columnName || !columnValue) continue;
 
-        let condition = "";
+            let condition = "";
 
-        if (columnType === "choice") {
-            // Correctly access the Value property for choice columns
-            condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
-        } else if (columnType === "string") {
-            condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
-        } else {
-            condition = `${functionMap[func]}(triggerBody()?['${columnName}'], ${columnValue})`;
+            if (columnType === "choice") {
+                // Correctly access the Value property for choice columns
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
+            } else if (columnType === "string") {
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
+            } else {
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], ${columnValue})`;
+            }
+
+            conditions.push(condition);
         }
 
-        conditions.push(condition);
+        let triggerCondition = conditions.length > 1
+            ? `@${conditionLogic}(${conditions.join(", ")})`
+            : `@${conditions[0] || "No valid conditions entered."}`;
+
+        document.getElementById('generatedSection').classList.remove('hidden');
+        document.getElementById('output').innerText = triggerCondition;
     }
-
-    let triggerCondition = conditions.length > 1
-        ? `@${conditionLogic}(${conditions.join(", ")})`
-        : `@${conditions[0] || "No valid conditions entered."}`;
-
-    document.getElementById('generatedSection').classList.remove('hidden');
-    document.getElementById('output').innerText = triggerCondition;
-}
-
 </script>
 
 </body>
