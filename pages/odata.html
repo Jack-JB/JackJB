@@ -41,32 +41,29 @@
         </select>
     </div>
 
-    <button onclick="addCondition()"
-    class="w-full bg-gray-600 text-white font-medium py-2 rounded-md hover:bg-gray-700 transition mb-3 flex items-center justify-center space-x-2">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-    <span>Add Another Condition</span>
+    <button onclick="addCondition()" class="w-full bg-gray-600 text-white font-medium py-2 rounded-md hover:bg-gray-700 transition mb-3 flex items-center justify-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        <span>Add Another Condition</span>
     </button>
 
-
-    <button onclick="generateTrigger()"
-        class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
+    <button onclick="generateTrigger()" class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
         </svg>
         <span>Generate Condition</span>
     </button>
 
-
     <div id="generatedSection" class="mt-4 hidden">
         <h3 class="text-sm text-gray-600 font-medium">Generated OData Condition:</h3>
         <div id="output" class="mt-2 p-3 bg-gray-200 text-gray-700 rounded-md text-sm"></div>
-        <button onclick="copyToClipboard()"
-            class="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition mt-2 flex items-center justify-center space-x-2">
+        <button onclick="copyToClipboard()" class="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition mt-2 flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
-            </svg>      
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 
+                1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 
+                1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+            </svg>
             <span>Copy to Clipboard</span>
         </button>
     </div>
@@ -77,22 +74,13 @@
 </div>
 
 <script>
-    
     function addCondition() {
         const conditionsContainer = document.getElementById('conditionsContainer');
-
         const conditionGroup = document.createElement('div');
-        conditionGroup.classList.add(
-            "relative", "bg-gray-100", "border", "border-gray-300", 
-            "rounded-lg", "p-4", "mb-4", "shadow-sm", "condition-group"
-        );
+        conditionGroup.classList.add("relative", "bg-gray-100", "border", "border-gray-300", "rounded-lg", "p-4", "mb-4", "shadow-sm", "condition-group");
 
         conditionGroup.innerHTML = `
-            <button class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
-                onclick="removeCondition(this)">
-                ✕
-            </button>
-
+            <button class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition" onclick="removeCondition(this)">✕</button>
             <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
             <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions(this)">
                 <option value="default" selected>Choose a column type</option>
@@ -101,24 +89,18 @@
                 <option value="boolean">Boolean</option>
                 <option value="choice">Choice</option>
             </select>
-
             <label class="block text-gray-600 font-medium mb-1">Column Name:</label>
             <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
-
             <label class="block text-gray-600 font-medium mb-1">Function:</label>
             <select class="function w-full p-2 border rounded-md mb-4">
                 <option value="default">Choose a function</option>
             </select>
-
             <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
             <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
         `;
 
         conditionsContainer.appendChild(conditionGroup);
-
-        // Trigger updateFunctions when adding a new condition
         updateFunctions(conditionGroup.querySelector('.columnType'));
-
         document.getElementById("conditionLogicContainer").classList.remove("hidden");
     }
 
@@ -127,9 +109,9 @@
     }
 
     function updateFunctions(columnTypeSelect) {
-        const conditionGroup = columnTypeSelect.closest('.condition-group'); // Find parent group
-        const functionSelect = conditionGroup.querySelector('.function'); // Find function dropdown
-        functionSelect.innerHTML = ''; // Clear existing options
+        const conditionGroup = columnTypeSelect.closest('.condition-group');
+        const functionSelect = conditionGroup.querySelector('.function');
+        functionSelect.innerHTML = '';
 
         const columnType = columnTypeSelect.value;
         const functions = {
@@ -153,27 +135,16 @@
     }
 
     function copyToClipboard() {
-      const outputText = document.getElementById('output').innerText;
-
-      // Create a temporary textarea element to copy the text
-      const textarea = document.createElement('textarea');
-      textarea.value = outputText;
-      document.body.appendChild(textarea);
-
-      // Select the text inside the textarea
-      textarea.select();
-      textarea.setSelectionRange(0, 99999); // For mobile devices
-
-      // Copy the text to clipboard
-      document.execCommand('copy');
-
-      // Remove the textarea element after copying
-      document.body.removeChild(textarea);
-
-      alert('OData condition copied to clipboard!');
-} 
-
-
+        const outputText = document.getElementById('output').innerText;
+        const textarea = document.createElement('textarea');
+        textarea.value = outputText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('OData condition copied to clipboard!');
+    }
 
     function generateTrigger() {
         const columnTypes = document.querySelectorAll('.columnType');
@@ -204,7 +175,6 @@
             let condition = "";
 
             if (columnType === "choice") {
-                // Correctly access the Value property for choice columns
                 condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
             } else if (columnType === "string") {
                 condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
