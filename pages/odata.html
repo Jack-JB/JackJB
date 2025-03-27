@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OData Generator for Power Automate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen flex-col">
+
+<div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">OData Generator</h2>
+
+    <div id="conditionsContainer">
+        <div class="condition-group">
+            <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
+            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions()">
+                <option value="string">String</option>
+                <option value="number">Number</option>
+                <option value="boolean">Boolean</option>
+                <option value="choice">Choice</option>
+            </select>
+
+            <label class="block text-gray-600 font-medium mb-1">Column Name:</label>
+            <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
+
+            <label class="block text-gray-600 font-medium mb-1">Function:</label>
+            <select class="function w-full p-2 border rounded-md mb-4">
+                <!-- Dynamic options will be added here based on column type -->
+            </select>
+
+            <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
+            <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
+        </div>
+    </div>
+
+    <div id="conditionLogicContainer" class="hidden">
+        <label class="block text-gray-600 font-medium mb-1">Condition Logic:</label>
+        <select id="conditionLogic" class="w-full p-2 border rounded-md mb-4">
+            <option value="or">OR</option>
+            <option value="and">AND</option>
+        </select>
+    </div>
+
+    <button onclick="addCondition()"
+        class="w-full bg-gray-600 text-white font-medium py-2 rounded-md hover:bg-gray-700 transition mb-3">
+        + Add Another Condition
+    </button>
+
+    <button onclick="generateTrigger()"
+        class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition">
+        Generate Trigger Condition
+    </button>
+
+    <!-- Hide the Generated OData Condition section until a condition is generated -->
+    <div id="generatedSection" class="mt-4 hidden">
+        <h3 class="text-sm text-gray-600 font-medium">Generated OData Condition:</h3>
+        <div id="output" class="mt-2 p-3 bg-gray-200 text-gray-700 rounded-md text-sm"></div>
+    </div>
+</div>
+
+<div class="mt-8 text-center text-sm text-gray-600">
+    <p>Made by <a href="https://github.com/Jack-JB" target="_blank" class="text-blue-600 hover:underline">Jack</a></p>
+</div>
+
+<script>
+    function updateFunctions() {
+        const columnType = document.querySelector('.columnType').value;
+        const functionSelect = document.querySelector('.function');
+        functionSelect.innerHTML = ''; // Clear existing options
+
+        const functions = {
+            string: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
+            number: ['equals', 'notEquals', 'contains', 'empty', 'notEmpty', 'startsWith', 'endsWith'],
+            boolean: ['equals', 'notEquals'],
+            choice: ['equals', 'notEquals', 'empty', 'notEmpty']
+        };
+
+        const options = functions[columnType] || [];
+        options.forEach(func => {
+            const option = document.createElement('option');
+            option.value = func;
+            option.textContent = func.charAt(0).toUpperCase() + func.slice(1).replace(/([A-Z])/g, ' $1'); // Format function names
+            functionSelect.appendChild(option);
+        });
+
+        // Change column value input type based on column type
+        const columnValueInput = document.querySelector('.columnValue');
+        if (columnType === 'boolean') {
+            columnValueInput.type = 'select-one';
+            columnValueInput.innerHTML = `
+                <option value="true">True</option>
+                <option value="false">False</option>
+            `;
+        } else {
+            columnValueInput.type = 'text';
+        }
+    }
+
+    function addCondition() {
+        const conditionsContainer = document.getElementById('conditionsContainer');
+
+        const conditionGroup = document.createElement('div');
+        conditionGroup.classList.add("condition-group", "mt-4", "border-t", "pt-4");
+
+        conditionGroup.innerHTML = `
+            <label class="block text-gray-600 font-medium mb-1">Column Type:</label>
+            <select class="columnType w-full p-2 border rounded-md mb-4" onchange="updateFunctions()">
+                <option value="string">String</option>
+                <option value="number">Number</option>
+                <option value="boolean">Boolean</option>
+                <option value="choice">Choice</option>
+            </select>
+
+            <label class="block text-gray-600 font-medium mb-1">Column Name:</label>
+            <input type="text" class="columnName w-full p-2 border rounded-md mb-4" placeholder="Enter column name">
+
+            <label class="block text-gray-600 font-medium mb-1">Function:</label>
+            <select class="function w-full p-2 border rounded-md mb-4">
+                <!-- Dynamic options will be added here based on column type -->
+            </select>
+
+            <label class="block text-gray-600 font-medium mb-1">Column Value:</label>
+            <input type="text" class="columnValue w-full p-2 border rounded-md mb-4" placeholder="Enter column value">
+        `;
+
+        conditionsContainer.appendChild(conditionGroup);
+        document.getElementById("conditionLogicContainer").classList.remove("hidden");
+    }
+
+    function generateTrigger() {
+        const columnTypes = document.querySelectorAll('.columnType');
+        const columnNames = document.querySelectorAll('.columnName');
+        const functions = document.querySelectorAll('.function');
+        const columnValues = document.querySelectorAll('.columnValue');
+        const conditionLogic = document.getElementById('conditionLogic').value;
+
+        const functionMap = {
+            equals: "equals",
+            notEquals: "not",
+            greater: "greater",
+            less: "less",
+            greaterOrEquals: "greaterOrEquals",
+            lessOrEquals: "lessOrEquals"
+        };
+
+        let conditions = [];
+
+        for (let i = 0; i < columnNames.length; i++) {
+            const columnType = columnTypes[i].value;
+            const columnName = columnNames[i].value.trim();
+            const func = functions[i].value;
+            const columnValue = columnValues[i].value.trim();
+
+            if (!columnName || !columnValue) continue;
+
+            let condition = "";
+
+            if (columnType === "choice") {
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}']?['Value'], '${columnValue}')`;
+            } else if (columnType === "string") {
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], '${columnValue}')`;
+            } else if (columnType === "boolean" || columnType === "number") {
+                condition = `${functionMap[func]}(triggerBody()?['${columnName}'], ${columnValue})`;
+            }
+
+            conditions.push(condition);
+        }
+
+        // Now handle the logic correctly: avoid extra quotes and handle conditions
+        let triggerCondition = conditions.length > 1
+            ? `@${conditionLogic}(${conditions.join(", ")})`
+            : `@${conditions[0] || "No valid conditions entered."}`;
+
+        const generatedSection = document.getElementById('generatedSection');
+        generatedSection.classList.remove('hidden'); // Show the generated section
+        document.getElementById('output').innerText = `${triggerCondition}`;
+    }
+</script>
+
+</body>
+</html>
