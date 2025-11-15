@@ -3,34 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JSON Stringify Minimiser</title>
+  <title>JSON Minifier</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Include Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen flex-col">
 
 <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-  <h1 class="text-xl font-semibold text-gray-700 mb-4 text-center">JSON Stringify Minimiser</h1>
+  <h1 class="text-xl font-semibold text-gray-700 mb-4 text-center">JSON Minifier</h1>
 
   <label class="block text-gray-600 font-medium mb-1">JSON Input:</label>
   <textarea id="jsonInput" oninput="updateInputCount()" class="w-full p-2 border rounded-md mb-2 h-40 font-mono"></textarea>
   <div class="text-gray-500 text-sm mb-4">Input character count: <span id="inputCount">0</span></div>
 
-  <button onclick="minifyJson()" class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition mb-2">Stringify JSON</button>
-  <button onclick="toonifyJson()" class="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700 transition mb-4">Convert to TOON</button>
+  <button onclick="minifyJson()" class="w-full bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center space-x-2">
+    <i class="fas fa-compress"></i>
+    <span>Minify JSON</span>
+  </button>
 
-  <h2 class="text-gray-700 font-semibold mb-2">Output</h2>
-  <div id="output" class="bg-gray-200 p-3 rounded-md text-sm font-mono mb-1 break-words overflow-auto max-h-40"></div>
-  <div class="text-gray-500 text-sm mb-4">Output character count: <span id="outputCount">0</span></div>
-
-  <h2 class="text-gray-700 font-semibold mb-2">TOON Output</h2>
-  <div id="toonOutput" class="bg-gray-200 p-3 rounded-md text-sm font-mono mb-1 break-words overflow-auto max-h-40"></div>
-  <div class="text-gray-500 text-sm mb-4">TOON character count: <span id="toonCount">0</span></div>
-
-  <!-- Token and Credit Information -->
-  <h2 class="text-gray-700 font-semibold mb-2">AI Builder Token & Credit Info</h2>
-  <div class="bg-gray-100 p-3 rounded-md text-sm text-gray-700">
-    <p>Estimated Tokens for Output: <span id="tokenCount">0</span></p>
-    <p>Estimated AI Builder Credits: <span id="creditCount">0</span></p>
+  <!-- Output Section -->
+  <div id="outputSection" class="hidden">
+    <h2 class="text-gray-700 font-semibold mb-2">Output</h2>
+    <div id="output" class="bg-gray-200 p-3 rounded-md text-sm font-mono mb-1 break-words overflow-auto max-h-40"></div>
+    <div class="text-gray-500 text-sm mb-4">Output character count: <span id="outputCount">0</span></div>
+    <button onclick="copyToClipboard('output')" class="w-full bg-gray-600 text-white font-medium py-2 rounded-md hover:bg-gray-700 transition flex items-center justify-center space-x-2">
+      <i class="fas fa-copy"></i>
+      <span>Copy Output</span>
+    </button>
   </div>
 </div>
 
@@ -39,8 +39,7 @@
     const input = document.getElementById('jsonInput').value.trim();
     const outputEl = document.getElementById('output');
     const outputCountEl = document.getElementById('outputCount');
-    const tokenCountEl = document.getElementById('tokenCount');
-    const creditCountEl = document.getElementById('creditCount');
+    const outputSection = document.getElementById('outputSection');
     const inputCount = input.length;
 
     try {
@@ -51,68 +50,16 @@
       outputEl.classList.add('bg-gray-200', 'text-gray-700'); // Add normal styles
       outputCountEl.textContent = `${result.length} (${calculateReductionPercentage(inputCount, result.length)}% reduction)`;
 
-      // Calculate tokens and credits
-      const tokens = calculateTokens(result);
-      const credits = calculateCredits(tokens);
-      tokenCountEl.textContent = tokens;
-      creditCountEl.textContent = credits;
+      // Show the output section
+      outputSection.classList.remove('hidden');
     } catch (err) {
       outputEl.textContent = 'Invalid JSON: ' + err.message;
       outputEl.classList.remove('bg-gray-200', 'text-gray-700'); // Remove normal styles
       outputEl.classList.add('bg-red-200', 'text-red-700'); // Add error styles
       outputCountEl.textContent = '0 (0% reduction)';
-      tokenCountEl.textContent = '0';
-      creditCountEl.textContent = '0';
-    }
-  }
 
-  function toonifyJson() {
-    const input = document.getElementById('jsonInput').value.trim();
-    const toonEl = document.getElementById('toonOutput');
-    const toonCountEl = document.getElementById('toonCount');
-    const tokenCountEl = document.getElementById('tokenCount');
-    const creditCountEl = document.getElementById('creditCount');
-    const inputCount = input.length;
-
-    try {
-      const parsed = JSON.parse(input);
-      const dict = {};
-      let counter = 1;
-
-      function transform(obj) {
-        if (Array.isArray(obj)) return obj.map(transform);
-        if (obj && typeof obj === 'object') {
-          const newObj = {};
-          for (const key in obj) {
-            if (!dict[key]) dict[key] = counter++;
-            newObj[dict[key]] = transform(obj[key]);
-          }
-          return newObj;
-        }
-        return obj;
-      }
-
-      const transformed = transform(parsed);
-      const toon = { _dict: dict, _data: transformed };
-      const result = JSON.stringify(toon);
-
-      toonEl.textContent = result;
-      toonEl.classList.remove('bg-red-200', 'text-red-700'); // Remove error styles
-      toonEl.classList.add('bg-gray-200', 'text-gray-700'); // Add normal styles
-      toonCountEl.textContent = `${result.length} (${calculateReductionPercentage(inputCount, result.length)}% reduction)`;
-
-      // Calculate tokens and credits
-      const tokens = calculateTokens(result);
-      const credits = calculateCredits(tokens);
-      tokenCountEl.textContent = tokens;
-      creditCountEl.textContent = credits;
-    } catch (err) {
-      toonEl.textContent = 'Invalid JSON: ' + err.message;
-      toonEl.classList.remove('bg-gray-200', 'text-gray-700'); // Remove normal styles
-      toonEl.classList.add('bg-red-200', 'text-red-700'); // Add error styles
-      toonCountEl.textContent = '0 (0% reduction)';
-      tokenCountEl.textContent = '0';
-      creditCountEl.textContent = '0';
+      // Show the output section even for errors
+      outputSection.classList.remove('hidden');
     }
   }
 
@@ -127,14 +74,15 @@
     return reduction.toFixed(2); // Round to 2 decimal places
   }
 
-  function calculateTokens(output) {
-    // Estimate tokens based on the number of characters (1 token ≈ 4 characters)
-    return Math.ceil(output.length / 4);
-  }
-
-  function calculateCredits(tokens) {
-    // Estimate AI Builder credits (1 credit ≈ 1000 tokens)
-    return (tokens / 1000).toFixed(2);
+  function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('Copied to clipboard!');
   }
 </script>
 
